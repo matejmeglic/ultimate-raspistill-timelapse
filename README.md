@@ -1,5 +1,6 @@
-# Ultimate Raspistill timelapse
-- v0.1 - 20200505 stable version. bugs can be found, but after rudimentary testing (2d), main workflow works as expected. 
+# Ultimate Raspistill timelapse 
+## Raspberry Pi Camera that automated timelapse that works 
+- v0.1 - 20200505 stable version. bugs can be found, but after rudimentary testing (2d), main workflow works as expected on RPI4. 
 Everyone is encouraged to do PR and contribute.
 
 ## Thank you section
