@@ -115,6 +115,7 @@ initPath = "/home/pi/camera/" # init path for folder generation
 initFolderName= str(initYear) + str(initMonth) + str(initDate) +"_"+ str(initHour) + str(initMins) # folder name generated, file name is generated later as it needs to be generated per image taken
 # automation configs
 tlVideoExportPath = "/export" # subfolder to store full-res timelapse !! caution, do not use closing / as ffmpeg building timelapse video will not work
+exportFileName = str(initYear) + str(initMonth) + str(initDate) # additional logic for avoiding duplication in the code
 backupHDDPath = "/backup/" # use sudo nano /etc/fstab to define mounting point for your HDD
 # youtube configs
 youtubeClientSecretsPath = "/home/pi/cs.json" # yt client secrets file path
@@ -234,8 +235,8 @@ while True:
                 if path.isdir(str(folderToSave) + str(tlVideoExportPath)) is False :
                     os.mkdir(str(folderToSave) + str(tlVideoExportPath))
                     logging.debug(' Folder created: ' + str(folderToSave) + str(tlVideoExportPath))
-                os.system("ffmpeg -framerate 30 -pattern_type glob -i '"+ str(folderToSave) +"/*.jpg' " + str(folderToSave) + str(tlVideoExportPath)+ "/" + str(fileName) +".mp4")
-                logging.debug(' Timelapse created: ' + str(folderToSave) + str(tlVideoExportPath) + "/" + str(fileName) )
+                os.system("ffmpeg -framerate 30 -pattern_type glob -i '"+ str(folderToSave) +"/*.jpg' " + str(folderToSave) + str(tlVideoExportPath)+ "/" + str(exportFileName) +".mp4")
+                logging.debug(' Timelapse created: ' + str(folderToSave) + str(tlVideoExportPath) + "/" + str(exportFileName) )
                 createMovieInit = 0
                 
             # after timelapse video is finished, it will be uploaded to youtube automatically
@@ -384,6 +385,7 @@ while True:
         initHour = "%02d" % (d.hour)
         initMins = "%02d" % (d.minute)
         initFolderName= str(initYear) + str(initMonth) + str(initDate) +"_"+ str(initHour) + str(initMins) 
+        exportFileName = str(initYear) + str(initMonth) + str(initDate)
 
 # reinit folder
         folderToSave = str(initPath) + str(initFolderName)
