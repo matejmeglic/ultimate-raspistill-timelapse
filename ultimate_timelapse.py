@@ -284,8 +284,6 @@ while True:
                 folderSizeMB = round(get_size()/1024/1024,1)
                 print(str(folderSizeGB)+" GB / "+str(folderSizeMB)+" MB")
                 logging.debug(' Total size after compression: ' +  str(folderSizeGB) + " GB / "+  str(folderSizeMB) + " MB")
-                logging.debug(' Logging session ended at: '+ str(d))
-                logEnd = d.strftime("%y%m%d_%H%M%S")
                 compressionInit = 0
           
             if backupToHDDInit == 1 :
@@ -321,6 +319,8 @@ while True:
                                 folderLoopInt = 1
                                 print("Files exist on HDD but hash didn't match - check HDD - potentially duplicated content.")
                                 logging.debug("CHECK - possible duplication: files moved to: "+str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt))
+                logging.debug(' Logging session ended at: '+ str(d))
+                logEnd = d.strftime("%y%m%d_%H%M%S")
                 backupToHDDInit = 0
 
             if logExportInit == 1 :
