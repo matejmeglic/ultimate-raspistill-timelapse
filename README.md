@@ -24,15 +24,15 @@ When setting up the environment for this script, please refer to prereq repos st
 
 ## Contents
 Attached are four scripts:
-1) ffmpeg.sh - TEST TOOL: creates a timelapse video (specify source and destination), useful for testing video quality (bitrate) [settings between 0-best and 51-worst]
-2) git_upload.py - GIT UPLOADER: uploads file every X seconds, could be reworked to keep multiple files online at once
-3) raspishot.sh - TEST TOOL: is intended to fully customize your camera manual settings to get best results (auto wb was brown [not-correct] in my case)
-4) ultimate_timelapse.py - actual timelapse script
+1) **ffmpeg.sh** - *TEST TOOL: *creates a timelapse video (specify source and destination), useful for testing video quality (bitrate) [settings between 0-best and 51-worst]
+2) **git_upload.py** - *GIT CRON UPLOADER:* uploads file every X seconds, could be reworked to keep multiple files online at once
+3) **raspishot.sh** - *TEST TOOL:* is intended to fully customize your camera manual settings to get best results (auto wb was brown [not-correct] in my case)
+4) **ultimate_timelapse.py** - actual timelapse script
 
 ## Running scripts
-Run script with: sudo python /your/file/location/ultimate_timelapse.py
+Run script with: **sudo python /your/file/location/ultimate_timelapse.py**
 
 ### Preffered way - set up a cronjob
-to schedule run at system startup run console nano crontab -e (set time interval within the code)
-@reboot /usr/bin/python /home/git_upload.py
-@reboot /usr/bin/python /home/pi/ultimate_timelapse.py
+to schedule run at system startup run console nano **crontab -e **(set time interval within the code)
+**@reboot /usr/bin/python /home/git_upload.py
+@reboot /usr/bin/python /home/pi/ultimate_timelapse.py**
