@@ -98,14 +98,14 @@ initMins = "%02d" % (d.minute)
 
 # config (change to your preference)
 # IMG settings
-captureHourStart = 6 # start of the capture
+captureHourStart = 5 # start of the capture
 captureHourEnd = 21 # finish the capture
 delayBetweenImages = 25 # Wait x+5 seconds before next capture (+5.5 sec goes because raspistill workflow for focusing, taking and saving a shot takes 5-5.5sec)
 imgWidth = 3280 # Max = 3280 
 imgHeight = 2464 # Max = 2464
 imgParameters = "-sh 100 -q 100 -v -ev -4 -awb off -awbg 1.6,1.7 -mm average -n" #raspistill parameters, configure
 # post-capture automation switches
-createMovie = True # settings for different processes to run after timelapse is completed 
+createMovie = False # settings for different processes to run after timelapse is completed 
 uploadToYoutube = True
 compression = True
 backupToHDD = True
@@ -123,8 +123,8 @@ youtubePlaylistTitle = "timelapse" # yt playlist name (playlist has to be create
 # git upload configs
 uploadToWeb = True # this switch controls uploading every x-th image to separate folder alongside with alltime image creation
 wCounterRoll = 9 # how often a compressed picture is duplicated in github www repo (and in alltime folder)
-imgWidthWeb = 1600 # Max = 3280 width and height of www repo image (smaller to decrease page loading time and file transfer)
-imgHeightWeb = 1202 # Max = 2464
+imgWidthWeb = 1920 # Max = 3280 width and height of www repo image (smaller to decrease page loading time and file transfer)
+imgHeightWeb = 1442 # Max = 2464
 alltimePath = "/www_alltime/" # subfolder to store full-res pictures that were sent to www repo
 pathLogsW = "/home/pi/ku_tl_cam/public/logs/" # logs in github repo
 pathImgW = "/home/pi/ku_tl_cam/public/img/" # last image in github repo
@@ -235,7 +235,7 @@ while True:
                 if path.isdir(str(folderToSave) + str(tlVideoExportPath)) is False :
                     os.mkdir(str(folderToSave) + str(tlVideoExportPath))
                     logging.debug(' Folder created: ' + str(folderToSave) + str(tlVideoExportPath))
-                os.system("ffmpeg -framerate 30 -pattern_type glob -i '"+ str(folderToSave) +"/*.jpg' " + str(folderToSave) + str(tlVideoExportPath)+ "/" + str(exportFileName) +".mp4")
+                os.system("ffmpeg -framerate 30 -pattern_type glob -i '"+ str(folderToSave) +"/*.jpg' -qscale 0 " + str(folderToSave) + str(tlVideoExportPath)+ "/" + str(exportFileName) +".mp4")
                 logging.debug(' Timelapse created: ' + str(folderToSave) + str(tlVideoExportPath) + "/" + str(exportFileName) )
                 createMovieInit = 0
                 
@@ -299,18 +299,18 @@ while True:
                 else :
                     if path.isdir(str(backupHDDPath)+str(initFolderName)) is False :
                         shutil.move(str(folderToSave), str(backupHDDPath)+str(initFolderName))
-                        logging.debug("Files successfully moved to: "+str(backupHDDPath)+str(initFolderName))
+                        logging.debug(" Files successfully moved to: "+str(backupHDDPath)+str(initFolderName))
                         print("Files moved to backup HDD")
                     else :
                         print("Same named file exists on both locations - check")
-                        logging.debug("Same named file exists on both locations - performing md5 hash check")
+                        logging.debug(" Same named file exists on both locations - performing md5 hash check")
                         hashSource = dirhash(str(folderToSave), 'md5')
                         hashHDD = dirhash(str(backupHDDPath)+str(initFolderName),'md5')
                         print("Source hash: "+hashSource)
                         print("Source hash: "+hashHDD)
                         if hashSource == hashHDD :
                             print("Files already exist on HDD - move process stopped.")
-                            logging.debug("CHECK - md5 hash check is the same - content already copied to: "+str(backupHDDPath)+str(initFolderName)+". Move wasn't performed.")
+                            logging.debug(" CHECK - md5 hash check is the same - content already copied to: "+str(backupHDDPath)+str(initFolderName)+". Move wasn't performed.")
                         else :
                             while path.isdir(str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt)) :
                                 print("File "+str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt)+" exists, try again.")
@@ -319,7 +319,7 @@ while True:
                                 shutil.move(str(folderToSave), str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt))
                                 folderLoopInt = 1
                                 print("Files exist on HDD but hash didn't match - check HDD - potentially duplicated content.")
-                                logging.debug("CHECK - possible duplication: files moved to: "+str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt))
+                                logging.debug(" CHECK - possible duplication: files moved to: "+str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt))
                 logging.debug(' Logging session ended at: '+ str(d))
                 logEnd = d.strftime("%y%m%d_%H%M%S")
                 backupToHDDInit = 0
