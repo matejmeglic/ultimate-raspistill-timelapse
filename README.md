@@ -1,8 +1,10 @@
-# Ultimate Raspistill timelapse
-v0.1 - 20200505 could be buggy, but after rudimentary testing, it works as expected. Everyone is encouraged to do PR and contribute.
+# Ultimate Raspistill timelapse 
+## Fully automated Raspberry Pi Camera datetime automated timelapse that works 
+- v0.1 - 20200505 stable version. bugs can be found, but after rudimentary testing (2d), main workflow works as expected on RPI4. 
+Everyone is encouraged to do PR and contribute.
 
 ## Thank you section
-Special thanks go to James Moore, Fotosy who created initial python script, to Arnau Sanchez for sharing automatic youtube uploader, to TechWizTime youtube channel for some cool ideas and to Marko Trebizan for being a mentor one can dream of.
+Special thanks go to James Moore, Fotosy who created initial python script that I relied heavily when creating this extended version, to Arnau Sanchez for sharing automatic youtube uploader and to Marko Trebizan for being a mentor one can dream of.
 
 ## Description
 This script was created because it is known that original raspistill shell timelapse feature cannot save images with filenames set as date or datetime (yyyy-mm-dd), only as a sequence (image%02d) therefore, new script was developed in pyhon to overcome these obstacles plus automate workflows so that it can be used as a standalone timelapse camera. 
