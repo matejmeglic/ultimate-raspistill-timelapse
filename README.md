@@ -54,29 +54,49 @@ d. set up PI
     - keyboard layout, 
     - Pi Start button (open menu) - Preferences - R Pi Configuration - interfaces tab -  enable camera, VNC, SSH
     - set up VNC (for remote access and debugging, find yt tutorial like https://www.youtube.com/watch?v=XjpquXPf24s, make sure to check VNC server boots on start)
-    - terminal - sudo raspi-config - enable running it without HDMI cable attached (had problems where I was not able to access remote desktop on RPI4)
+    - sudo raspi-config - enable running it without HDMI cable attached (had problems where I was not able to access remote desktop on RPI4)
     - reboot
 
+
 #### Set up prerequisites for timelapse script
-1. As you assure that Pi works as intended, shut it down and connect the camera (read instructions on static electricity, don't forget to take SD card out if you are using RPI housing, peel protective layer off). 
-2. Download files from this git repo (terminal - GIT CLONE REPOSITORY_LINK)
-3. terminal - chmod +x /home/pi/ultimate-raspistill-timelapse/raspishot.sh      <-- this will make .sh script executable
-4. Use raspishot.sh to take photos and set up camera settings if needed (refer to the documentation, use text editor to modify output folder of the script) 
+*use raspishot.sh to test camera*
+    -  As you assure that Pi works as intended, shut it down and connect the camera (read instructions on static electricity, don't forget to take SD card out if you are using RPI housing, peel protective layer off). 
+    -  Download files from this git repo (GIT CLONE REPOSITORY_LINK)
+    -  chmod +x /home/pi/ultimate-raspistill-timelapse/raspishot.sh      <-- this will make .sh script executable
+    -  Use raspishot.sh to take photos and set up camera settings if needed (refer to the documentation, use text editor to modify output folder of the script) 
 HURA - first captured photos should be in the folder
-5. terminal - sudo apt update
-6. terminal - sudo apt upgrade (might take a while)
-7. terminal - sudo apt-get install xscreensaver (after that turn screen saver of in Raspi-menu - Preferences - Screensaver)
-7. terminal - sudo reboot
-8. terminal - pip install checksumdir
-9. terminal - sudo apt install ffmpeg
+    - sudo apt update
+    - sudo apt upgrade (might take a while)
+    - sudo apt-get install xscreensaver (after that turn screen saver of in Raspi-menu - Preferences - Screensaver)
+    - sudo reboot
+    - pip install checksumdir
+    - sudo apt install ffmpeg
 If you disable all the post-capture actions 
     - set all post-capture actions to **False** in the config section, 
     - recheck all folder paths in config, 
     - now a rudimentary timelapse should work 
     - try with terminal - cd FOLDER - python ultimate_timelapse.py - interrupt process with CTRL+C (note that you can change captureElement from hours to minutes in the code)
-    - at this moment, you can also turn createVideo and compression post-capture functionality on as it should work
+
+
+#### ffmpeg setup (compression and timelapse)
+*use ffmpeg.sh to test how timelapse video is created*
+**Read section correct config setup in order for Pi with less than 1GB RAM to be able to process video!**
+
+    - sudo apt-get install libavcodec-dev
+    - sudo apt-get install aptitude
+    - sudo aptitude install ffmpeg <-- sintax could be wrong here
+    - chmod +x ffmpeg.sh
+    - correct path after initial recording
+    - ./ffmpeg.sh (run script)
+
+In case it doesn't work, try googling for 
+    - sudo apt remove libavcodec58 
+    - manual build of ffpmeg as: jollejolles.com/installing-ffpmeg-with-h264-support-on-raspberry-pi
+
 
 #### Set up post-capture (autonomous) functionalities
+*use youtube-upload.sh to test uploading to youtube* 
+
 Follow https://github.com/tokland/youtube-upload
 - sudo pip install --upgrade google-api-python-client oauth2client progressbar2
 - wget https://github.com/tokland/youtube-upload/archive/master.zip
@@ -87,7 +107,7 @@ Set up OAuth file
 - log into google console (make sure you log in with account that has linked (is owner of) youtube channel - if you are having problems, that is the likely cause for them)
 - select project - new project - enter name of your project - click Create project
 - select newly created project
-- APIs & Services - click Enable APIs and Services - find all Youtube related APIs and enable them (I believe you only need Data API v3 [20200528])
+- APIs & Services - click Enable APIs and Services - find all Youtube related APIs and enable them (I believe you only need Data API v3)
 - Click Create credentials 
     - youtube api
     - other non-ui
@@ -99,18 +119,11 @@ Set up OAuth file
 - Create credentials
     - OAuth cliend ID
     - Application type: desktop app
-
-
-
-- OAuth client ID
-- Configure consent screen
-    - User type : External
-    - enter data and click Save
-- Click Create credentials - OAuth client ID - Application type: Desktop app (or other) - name: youtube-upload - Create
+    - name: youtube-upload - Create
 - download .json file (far right in OAuth 2.0 Client IDs)
-- modify path to .json file, title and path to video in youtube-upload.sh
+- modify path to .json file, title and path-to-test-video in youtube-upload.sh
 - terminal - chmod +x youtube-upload.sh (to make it executable)
-- terminal - ./youtube-upload.sh (run script)
+- terminal - ./youtube-upload.sh (run script test upload)
     - script will ask you to open link in a browser for validation
     - click on correct email profile --> then click on correct YOUTUBE ACCOUNT
     - Advanced
@@ -120,6 +133,18 @@ Set up OAuth file
     - Paste given code back to the terminal and press enter
     - if everything was done correctly, you should be able to upload videos - if you are getting 401, there is a problem with Authorization with your youtube channel or smth, refer to tokland GitHub issues and google for solving that part
 
+
+#### Set external HDD to dedicated mount point
+*https://youtu.be/5OFnqLuYZy8?t=660*
+
+- connect HDD via usb
+- df -h <-- shows all mounted devices, HDD should like /dev/sda1
+- sudo nano /etc/fstab
+- add entry: /dev/sda1 /home/pi/backup ntfs defaults 0 0
+(spaces should be tabs, path could be smth else, but be careful for access rights, ntfs could be different format such as ext4)
+- sudo reboot
+- check mount path (contents of the disk should be visible)
+*NOTE: after you do this, normal startup of the Pi without connected HDD will be interrupted.*
 
 
 
