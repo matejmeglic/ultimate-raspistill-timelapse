@@ -78,14 +78,16 @@
 # Import section
 import re
 import os
+import glob
 import os.path
+from os import path
 import time
-import logging
 import datetime
 import subprocess
 import shutil
-from os import path
 from checksumdir import dirhash
+import logging
+import logging.handlers
 
 # Grab the current datetime which will be used to generate dynamic folder names
 d = datetime.datetime.now()
@@ -97,8 +99,8 @@ initMins = "%02d" % (d.minute)
 
 # config (change to your preference)
 # capture settings
-captureHourStart = 1 # start of the capture
-captureHourEnd = 26 # finish the capture
+captureHourStart = 0 # start of the capture
+captureHourEnd = 31 # finish the capture
 delayBetweenImages = 25 # Wait x+5 seconds before next capture (+5.5 sec goes because raspistill workflow for focusing, taking and saving a shot takes 5-5.5sec)
 # IMG settings
 imgWidth = 3280 # Max = 3280
@@ -139,7 +141,7 @@ uploadToYoutubeInit = 0
 compressionInit = 0
 backupToHDDInit = 0
 logExportInit = 0
-delayPostprocess = 10 # sleep between post-capture actions
+delayPostprocess = 1 # sleep between post-capture actions
 
 folderToSave =  str(initPath) + str(initFolderName)
 if path.isdir(str(initPath)) is False :
@@ -148,14 +150,17 @@ if path.isdir(str(folderToSave)) is False :
     os.mkdir(str(folderToSave))
 
 # Set up a system log file to store activities for any checks.
-log_file_path = str(folderToSave) + ".log"
-logStart = d.strftime("%y%m%d_%H%M%S")
-logging.basicConfig(filename=log_file_path,level=logging.DEBUG)
-logging.debug(" Ultimate RaspiLapse -- Started Log for " + str(folderToSave))
-logging.debug(str(logStart))
-logging.debug(" Logging session started at: "+ str(logStart))
+systemLogPath = str(initPath) + "SystemLog.log"
+systemLog = logging.getLogger('Timelapse logging')
+systemLog.setLevel(logging.DEBUG)
+systemLog.addHandler(logging.handlers.RotatingFileHandler(systemLogPath))
+systemLog.handlers[0].doRollover()
 
-dateToday = datetime.date.today() # HACK DELETE
+logStart = d.strftime("%y%m%d_%H%M%S")
+systemLog.debug(" Ultimate RaspiLapse -- Started Log for " + str(folderToSave))
+systemLog.debug(str(logStart))
+systemLog.debug(" Logging session started at: "+ str(logStart))
+
 
 # Run a WHILE Loop of infinitely
 # This is where magic happens
@@ -163,7 +168,7 @@ while True:
 
     d = datetime.datetime.now()
     # this will reset folder and put a special tag in system log
-    #dateToday = datetime.date.today()
+    dateToday = datetime.date.today()
     if dateToday == dateIsYesterday:
 
 # change if you want program to end on certain hour h-format (without leading zeroes).
@@ -191,27 +196,27 @@ while True:
             # Capture the image using raspistill.
             if wCounter <= wCounterRoll : # change to 9 - every 10th image will have special action (duplicated to alltime folder and github repo)
                 os.system("raspistill -w " + str(imgWidth) + " -h " + str(imgHeight) + " -o " + str(folderToSave) + "/" + str(fileName) + ".jpg " + str(imgParameters))
-                logging.debug(' Full-res image saved: ' + str(folderToSave) + "/" + str(fileName) )
+                systemLog.debug(' Full-res image saved: ' + str(folderToSave) + "/" + str(fileName) )
                 wCounter += 1
                 print("wCounter: "+str(wCounter))
             else :
                 # same process as above (taking normal picture)
                 os.system("raspistill -w " + str(imgWidth) + " -h " + str(imgHeight) + " -o " + str(folderToSave) + "/" + str(fileName) + ".jpg " + str(imgParameters))
-                logging.debug(' Full-res image saved: ' + str(folderToSave) + "/" + str(fileName) )
+                systemLog.debug(' Full-res image saved: ' + str(folderToSave) + "/" + str(fileName) )
                 # create webpage image_shot every 10-th image to /img (webpage will refresh image every 5min; calculate as wCount max number in if statement
                 # x timeout between the picture x time to capture the picture as raspistill takes about 5.5 sec to take each picture)
                 if path.isdir(pathImgW) is False :
                     os.mkdir(pathImgW)
-                    logging.debug(' Folder created: '+pathImgW)
+                    systemLog.debug(' Folder created: '+pathImgW)
                 # ffmpeg creates virtual copy in github repo
                 os.system("ffmpeg -i "+str(folderToSave) + "/" + str(fileName)+".jpg -vf scale="+str(imgWidthWeb)+":"+ str(imgHeightWeb)+" " + pathImgW + str(fileName) + ".jpg -y")
-                logging.debug(" Compressed image saved to www: "+pathImgW + str(fileName) + ".jpg (UPDATED)" )
+                systemLog.debug(" Compressed image saved to www: "+pathImgW + str(fileName) + ".jpg (UPDATED)" )
                 # ffmpeg creates virtual (full-res) copy in /www_alltime folder (so you have easy access to all published photos)
                 if path.isdir(str(folderToSave)+str(alltimePath)) is False :
                     os.mkdir(str(folderToSave)+str(alltimePath))
-                    logging.debug(' Folder created: ' + str(folderToSave)+str(alltimePath))
+                    systemLog.debug(' Folder created: ' + str(folderToSave)+str(alltimePath))
                 os.system("ffmpeg -i "+str(folderToSave) + "/" + str(fileName)+".jpg -vf scale="+str(imgWidth)+":"+ str(imgHeight) +" "+str(folderToSave)+str(alltimePath)+ str(fileName) +".jpg -y")
-                logging.debug(' Compressed image saved: ' + str(folderToSave) + "/" + str(fileName))
+                systemLog.debug(' Compressed image saved: ' + str(folderToSave) + "/" + str(fileName))
                 wCounter = 1
 
         # Wait x+5 seconds before next capture (+5.5 sec goes because raspistill workflow for focusing, taking and saving a shot takes 5-5.5sec)
@@ -238,10 +243,10 @@ while True:
                 print (" ====================================== Exporting .JPGs to FullHD timelapse")
                 if path.isdir(str(folderToSave) + str(tlVideoExportPath)) is False :
                     os.mkdir(str(folderToSave) + str(tlVideoExportPath))
-                    logging.debug(' FullHD Timelapse Folder created: ' + str(folderToSave) + str(tlVideoExportPath))
+                    systemLog.debug(' FullHD Timelapse Folder created: ' + str(folderToSave) + str(tlVideoExportPath))
                 os.system("ffmpeg -framerate 30 -pattern_type glob -i '"+ str(folderToSave) +"/*.jpg' -vf scale=1080:810 -qscale 0 " + str(folderToSave) + str(tlVideoExportPath)+ "/" + str(exportFileName) +".mp4")
                 os.system("ffmpeg -framerate 30 -pattern_type glob -i '"+ str(folderToSave) +"/*.jpg' -qscale 0 " + str(folderToSave) + str(tlVideoExportPath)+ "/" + str(exportFileName4k) +".mp4")
-                logging.debug(' FullHD Timelapse created: ' + str(folderToSave) + str(tlVideoExportPath) + "/" + str(exportFileName) )
+                systemLog.debug(' FullHD Timelapse created: ' + str(folderToSave) + str(tlVideoExportPath) + "/" + str(exportFileName) )
                 createMovieInit = 0
             # after timelapse video is finished, it will be uploaded to youtube automatically
             if uploadToYoutubeInit == 1 :
@@ -249,7 +254,7 @@ while True:
                 time.sleep(delayPostprocess)
                 print (" ====================================== Uploading video to Youtube.com")
                 os.system("/usr/local/bin/youtube-upload --title=" + str(fileName) + " --client-secrets="+ youtubeClientSecretsPath +" --playlist='"+youtubePlaylistTitle+"' --embeddable=True "+ str(folderToSave) + str(tlVideoExportPath) + "/" + str(exportFileName) +".mp4")
-                logging.debug(' Video auto uploaded to youtube: ' + str(folderToSave) + str(tlVideoExportPath) + "/" + str(fileName) )
+                systemLog.debug(' Video auto uploaded to youtube: ' + str(folderToSave) + str(tlVideoExportPath) + "/" + str(fileName) )
                 uploadToYoutubeInit = 0
 
             # after upload is finish, all captured images will be resized automatically + logging folder total size of captured images
@@ -271,11 +276,11 @@ while True:
                 path, dirs, files = next(os.walk(str(folderToSave)))
                 fileCount = len(files)
                 print(str(fileCount))
-                logging.debug(' '+str(fileCount)+' photos recorded during the session. ')
+                systemLog.debug(' '+str(fileCount)+' photos recorded during the session. ')
                 folderSizeGB = round(get_size()/1024/1024/1024,3)
                 folderSizeMB = round(get_size()/1024/1024,1)
                 print(str(folderSizeGB)+" GB / "+str(folderSizeMB)+" MB")
-                logging.debug(' Total size before compression: ' +  str(folderSizeGB) + " GB / "+  str(folderSizeMB) + " MB")
+                systemLog.debug(' Total size before compression: ' +  str(folderSizeGB) + " GB / "+  str(folderSizeMB) + " MB")
                 # compress each photo in the folder
                 photos = os.listdir(str(folderToSave))
                 for photo in photos:
@@ -284,11 +289,11 @@ while True:
                 path, dirs, files = next(os.walk(str(folderToSave)))
                 fileCount = len(files)
                 print(str(fileCount))
-                logging.debug(' '+str(fileCount)+' photos after compression.  ')
+                systemLog.debug(' '+str(fileCount)+' photos after compression.  ')
                 folderSizeGB = round(get_size()/1024/1024/1024,3)
                 folderSizeMB = round(get_size()/1024/1024,1)
                 print(str(folderSizeGB)+" GB / "+str(folderSizeMB)+" MB")
-                logging.debug(' Total size after compression: ' +  str(folderSizeGB) + " GB / "+  str(folderSizeMB) + " MB")
+                systemLog.debug(' Total size after compression: ' +  str(folderSizeGB) + " GB / "+  str(folderSizeMB) + " MB")
                 compressionInit = 0
 
             if backupToHDDInit == 1 :
@@ -303,18 +308,18 @@ while True:
                 else :
                     if path.isdir(str(backupHDDPath)+str(initFolderName)) is False :
                         shutil.move(str(folderToSave), str(backupHDDPath)+str(initFolderName))
-                        logging.debug(" Files successfully moved to: "+str(backupHDDPath)+str(initFolderName))
+                        systemLog.debug(" Files successfully moved to: "+str(backupHDDPath)+str(initFolderName))
                         print("Files moved to backup HDD")
                     else :
                         print("Same named file exists on both locations - check")
-                        logging.debug(" Same named file exists on both locations - performing md5 hash check")
+                        systemLog.debug(" Same named file exists on both locations - performing md5 hash check")
                         hashSource = dirhash(str(folderToSave), 'md5')
                         hashHDD = dirhash(str(backupHDDPath)+str(initFolderName),'md5')
                         print("Source hash: "+hashSource)
                         print("Source hash: "+hashHDD)
                         if hashSource == hashHDD :
                             print("Files already exist on HDD - move process stopped.")
-                            logging.debug(" CHECK - md5 hash check is the same - content already copied to: "+str(backupHDDPath)+str(initFolderName)+". Move wasn't performed.")
+                            systemLog.debug(" CHECK - md5 hash check is the same - content already copied to: "+str(backupHDDPath)+str(initFolderName)+". Move wasn't performed.")
                         else :
                             while path.isdir(str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt)) :
                                 print("File "+str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt)+" exists, try again.")
@@ -323,8 +328,8 @@ while True:
                                 shutil.move(str(folderToSave), str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt))
                                 folderLoopInt = 1
                                 print("Files exist on HDD but hash didn't match - check HDD - potentially duplicated content.")
-                                logging.debug(" CHECK - possible duplication: files moved to: "+str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt))
-                logging.debug(' Logging session ended at: '+ str(d))
+                                systemLog.debug(" CHECK - possible duplication: files moved to: "+str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt))
+                systemLog.debug(' Logging session ended at: '+ str(d))
                 logEnd = d.strftime("%y%m%d_%H%M%S")
                 backupToHDDInit = 0
 
@@ -341,7 +346,7 @@ while True:
                 export_file_backup = str(backupHDDPath) + str(initFolderName) + file
                 regex = logStart
                 # read from system log
-                with open(str(log_file_path), "r") as file:
+                with open(str(systemLogPath), "r") as file:
                     match_list = []
                     signal1 = 0
                     for line in file:
@@ -374,17 +379,10 @@ while True:
                 logExportInit = 0
 
                 # remove system log
-                os.remove(log_file_path)
+                os.remove(systemLogPath)
                 print("SYSTEM LOG DELETED.")
-                print(str(initPath))
-                print(str(initFolderName))
-                print(str(folderToSave))
-                print(path.isdir(str(initPath)))
-                print(path.isdir(str(folderToSave)))
-                print(str(dateToday))
-                print("----------")
-                dateToday = datetime.date.today() - datetime.timedelta(days=1)
-                print(str(dateToday))
+
+
                 
 
     else:
@@ -393,9 +391,8 @@ while True:
 
 # reinit day
         from os import path
-        import logging
         d = datetime.datetime.now()
-        #dateToday = datetime.date.today()
+        dateToday = datetime.date.today()
         dateIsYesterday = datetime.date.today()
         initYear = "%04d" % (d.year)
         initMonth = "%02d" % (d.month)
@@ -406,16 +403,7 @@ while True:
         exportFileName = str(initYear) + str(initMonth) + str(initDate)
 
 # reinit folder
-        folderToSave = str(initPath) + str(initFolderName)
-        print(str(initPath))
-        print(str(initFolderName))
-        print(str(folderToSave))
-        print(path.isdir(str(initPath)))
-        print(path.isdir(str(folderToSave)))
-        print("--ELSE PERFORMED--")
-        captureHourStart = 27 # start of the capture
-        captureHourEnd = 28 # finish the capture
-        
+        folderToSave = str(initPath) + str(initFolderName)   
         
         if path.isdir(str(initPath)) is False :
             os.mkdir(str(initPath))
@@ -425,12 +413,13 @@ while True:
             print("folderToSave created")
 
 # reinit logging (same file)
-        log_file_path = str(folderToSave) + ".log"
-        print(str(log_file_path))
+        systemLog = logging.getLogger('Timelapse logging')
+        systemLog.setLevel(logging.DEBUG)
+        systemLog.addHandler(logging.handlers.RotatingFileHandler(systemLogPath))
+        systemLog.handlers[0].doRollover()
+
         logStart = d.strftime("%y%m%d_%H%M%S")
-        logging.basicConfig(filename=log_file_path,level=logging.DEBUG)
-        logging.debug(" Ultimate RaspiLapse -- Started Log for " + str(folderToSave))
-        logging.debug(str(logStart))
-        logging.debug(" Logging session started at: "+ str(logStart))
+        systemLog.debug(" Ultimate RaspiLapse -- Started Log for " + str(folderToSave))
+        systemLog.debug(str(logStart))
+        systemLog.debug(" Logging session started at: "+ str(logStart))
         
-        dateToday = datetime.date.today() #HACK DELETE
