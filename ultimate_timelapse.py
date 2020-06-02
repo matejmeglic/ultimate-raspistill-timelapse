@@ -97,18 +97,17 @@ initMins = "%02d" % (d.minute)
 
 # config (change to your preference)
 # capture settings
-captureHourStart = 5 # start of the capture
-captureHourEnd = 21 # finish the capture
-captureElement = d.hour # for faster debug results you may change this to d.minute
+captureHourStart = 1 # start of the capture
+captureHourEnd = 26 # finish the capture
 delayBetweenImages = 25 # Wait x+5 seconds before next capture (+5.5 sec goes because raspistill workflow for focusing, taking and saving a shot takes 5-5.5sec)
 # IMG settings
 imgWidth = 3280 # Max = 3280
 imgHeight = 2464 # Max = 2464
 imgParameters = "-sh 100 -q 100 -v -vf -hf -ev -4 -awb off -awbg 1.6,1.7 -mm average -n" #raspistill parameters, configure
 # post-capture automation switches
-createMovie = True # settings for different processes to run after timelapse is completed
-uploadToYoutube = True
-compression = True
+createMovie = False # settings for different processes to run after timelapse is completed
+uploadToYoutube = False
+compression = False
 backupToHDD = True
 logExport = True
 # storage settings (file name is defined later in the code)
@@ -118,18 +117,18 @@ initFolderName= str(initYear) + str(initMonth) + str(initDate) +"_"+ str(initHou
 tlVideoExportPath = "/export" # subfolder to store full-res timelapse !! caution, do not use closing / as ffmpeg building timelapse video will not work
 exportFileName = str(initYear) + str(initMonth) + str(initDate) # additional logic for avoiding duplication in the code
 exportFileName4k = str(initYear) + str(initMonth) + str(initDate)+"_4k"
-backupHDDPath = "/backup/" # use sudo nano /etc/fstab to define mounting point for your HDD
+backupHDDPath = "/home/pi/backupaa/" # use sudo nano /etc/fstab to define mounting point for your HDD
 # youtube configs
 youtubeClientSecretsPath = "/home/pi/cs.json" # yt client secrets file path
 youtubePlaylistTitle = "timelapse" # yt playlist name (playlist has to be created manually in youtube ahead of capture)
 # git upload configs
-uploadToWeb = True # this switch controls uploading every x-th image to separate folder alongside with alltime image creation
+uploadToWeb = False # this switch controls uploading every x-th image to separate folder alongside with alltime image creation
 wCounterRoll = 9 # how often a compressed picture is duplicated in github www repo (and in alltime folder)
 imgWidthWeb = 1920 # Max = 3280 width and height of www repo image (smaller to decrease page loading time and file transfer)
 imgHeightWeb = 1442 # Max = 2464
 alltimePath = "/www_alltime/" # subfolder to store full-res pictures that were sent to www repo
-pathLogsW = "/home/pi/tl_cam/public/logs/" # logs in github repo
-pathImgW = "/home/pi/tl_cam/public/img/" # last image in github repo
+pathLogsW = "/home/pi/ku_tl_cam/public/logs/" # logs in github repo
+pathImgW = "/home/pi/ku_tl_cam/public/img/" # last image in github repo
 
 # DON'T CHANGE: inits for different processes to run after timelapse is completed
 dateToday = datetime.date.today() # for running timelapse for multiple days (auto generating folders and log separation)
@@ -145,8 +144,8 @@ delayPostprocess = 10 # sleep between post-capture actions
 folderToSave =  str(initPath) + str(initFolderName)
 if path.isdir(str(initPath)) is False :
     os.mkdir(str(initPath))
-if path.isdir(folderToSave) is False :
-    os.mkdir(folderToSave)
+if path.isdir(str(folderToSave)) is False :
+    os.mkdir(str(folderToSave))
 
 # Set up a system log file to store activities for any checks.
 log_file_path = str(folderToSave) + ".log"
@@ -156,13 +155,15 @@ logging.debug(" Ultimate RaspiLapse -- Started Log for " + str(folderToSave))
 logging.debug(str(logStart))
 logging.debug(" Logging session started at: "+ str(logStart))
 
+dateToday = datetime.date.today() # HACK DELETE
+
 # Run a WHILE Loop of infinitely
 # This is where magic happens
 while True:
 
     d = datetime.datetime.now()
     # this will reset folder and put a special tag in system log
-    dateToday = datetime.date.today()
+    #dateToday = datetime.date.today()
     if dateToday == dateIsYesterday:
 
 # change if you want program to end on certain hour h-format (without leading zeroes).
@@ -171,6 +172,7 @@ while True:
 # or modify config section captureHourStart and captureHourEnd if you want to run it between time range
 # current settings doesn't allow 24-h or over-midnight timelapse capture (folder generation, system log etc.)
 
+        captureElement = d.minute # for faster debug results you may change this to "minute"
         if captureElement >= captureHourStart and captureElement < captureHourEnd :
 
             # Capture the CURRENT time (not start time as set above) to insert into each capture image filename
@@ -339,7 +341,7 @@ while True:
                 export_file_backup = str(backupHDDPath) + str(initFolderName) + file
                 regex = logStart
                 # read from system log
-                with open(log_file_path, "r") as file:
+                with open(str(log_file_path), "r") as file:
                     match_list = []
                     signal1 = 0
                     for line in file:
@@ -371,9 +373,19 @@ while True:
                     print("Logs exported to backup HDD.")
                 logExportInit = 0
 
-                   # remove system log
-                #os.system(rm str(folderToSave) + ".log")
-                #print("SYSTEM LOG DELETED.")
+                # remove system log
+                os.remove(log_file_path)
+                print("SYSTEM LOG DELETED.")
+                print(str(initPath))
+                print(str(initFolderName))
+                print(str(folderToSave))
+                print(path.isdir(str(initPath)))
+                print(path.isdir(str(folderToSave)))
+                print(str(dateToday))
+                print("----------")
+                dateToday = datetime.date.today() - datetime.timedelta(days=1)
+                print(str(dateToday))
+                
 
     else:
 # this part is used when script is run overnight (date change) and enforce saving images to different folder every day
@@ -381,8 +393,9 @@ while True:
 
 # reinit day
         from os import path
+        import logging
         d = datetime.datetime.now()
-        dateToday = datetime.date.today()
+        #dateToday = datetime.date.today()
         dateIsYesterday = datetime.date.today()
         initYear = "%04d" % (d.year)
         initMonth = "%02d" % (d.month)
@@ -394,15 +407,30 @@ while True:
 
 # reinit folder
         folderToSave = str(initPath) + str(initFolderName)
+        print(str(initPath))
+        print(str(initFolderName))
+        print(str(folderToSave))
+        print(path.isdir(str(initPath)))
+        print(path.isdir(str(folderToSave)))
+        print("--ELSE PERFORMED--")
+        captureHourStart = 27 # start of the capture
+        captureHourEnd = 28 # finish the capture
+        
+        
         if path.isdir(str(initPath)) is False :
             os.mkdir(str(initPath))
-        if path.isdir(folderToSave) is False :
-            os.mkdir(folderToSave)
+            print("InitPath created")
+        if path.isdir(str(folderToSave)) is False :
+            os.mkdir(str(folderToSave))
+            print("folderToSave created")
 
 # reinit logging (same file)
         log_file_path = str(folderToSave) + ".log"
+        print(str(log_file_path))
         logStart = d.strftime("%y%m%d_%H%M%S")
         logging.basicConfig(filename=log_file_path,level=logging.DEBUG)
         logging.debug(" Ultimate RaspiLapse -- Started Log for " + str(folderToSave))
         logging.debug(str(logStart))
         logging.debug(" Logging session started at: "+ str(logStart))
+        
+        dateToday = datetime.date.today() #HACK DELETE
