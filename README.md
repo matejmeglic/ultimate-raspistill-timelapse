@@ -40,8 +40,8 @@ to schedule run at system startup run console nano **crontab -e **(set time inte
 
 
 ### Installation from the get-go (pi3 + pi camera) #fordummies :D
-#### Set up Pi
-0. Get Pi up and running
+#### 1. Set up Pi
+*Get Pi up and running*
 
 a. download Raspbian desktop image + extract ZIP file
 b. download balenaEtcher
@@ -58,7 +58,7 @@ d. set up PI
     - reboot
 
 
-#### Set up prerequisites for timelapse script
+#### 2. Set up prerequisites for timelapse script
 *use raspishot.sh to test camera*
     -  As you assure that Pi works as intended, shut it down and connect the camera (read instructions on static electricity, don't forget to take SD card out if you are using RPI housing, peel protective layer off). 
     -  Download files from this git repo (GIT CLONE REPOSITORY_LINK)
@@ -78,7 +78,7 @@ If you disable all the post-capture actions
     - try with terminal - cd FOLDER - python ultimate_timelapse.py - interrupt process with CTRL+C (note that you can change captureElement from hours to minutes in the code)
 
 
-#### ffmpeg setup (compression and timelapse)
+#### 3. ffmpeg setup (compression and timelapse)
 *use ffmpeg.sh to test how timelapse video is created*
 **Read section correct config setup in order for Pi with less than 1GB RAM to be able to process video!**
 
@@ -94,7 +94,7 @@ In case it doesn't work, try googling for
     - manual build of ffpmeg as: jollejolles.com/installing-ffpmeg-with-h264-support-on-raspberry-pi
 
 
-#### Set up post-capture (autonomous) functionalities
+#### 4. Set up post-capture (autonomous) functionalities
 *use youtube-upload.sh to test uploading to youtube* 
 
 Follow https://github.com/tokland/youtube-upload
@@ -134,7 +134,7 @@ Set up OAuth file
     - if everything was done correctly, you should be able to upload videos - if you are getting 401, there is a problem with Authorization with your youtube channel or smth, refer to tokland GitHub issues and google for solving that part
 
 
-#### Set external HDD to dedicated mount point
+#### 5. Set external HDD to dedicated mount point
 *https://youtu.be/5OFnqLuYZy8?t=660*
 
 - connect HDD via usb
@@ -146,12 +146,20 @@ Set up OAuth file
 - check mount path (contents of the disk should be visible)
 *NOTE: after you do this, normal startup of the Pi without connected HDD will be interrupted.*
 
+#### 6. Set up GIT
+    - create SSH credentials and connect GIT via SSH
+    - create new repo on GIT
+    - GIT clone link to clone git repo
+    - test uploading to GIT
+    - create appropriate folder structure (up to your liking, I use repo/public/img and disable automatic building and only reference photo using GIT API)
+    - adjust config paths to point to that folder
+    - test run /path/to/git_upload.py and create a capture to check if you can push captured photo to GIT  
 
+#### 7. Set up cronjob (for automatic capture and git_upload start on power)
+@reboot cd /path/to && sudo -u pi /usr/bin/python /path/to/git_upload.py <-- go into folder and then run script command as an user
+@reboot /usr/bin/python /path/to/ultimate_timelapse.py
 
 todo:
 - check logs
-- check all folders from config and make them if they don't exist prior to recording (try multilevel checks)
-- config for gitupload
 - config for 4k and fullHd upload
-- config hour/minute move to config
 - git cron

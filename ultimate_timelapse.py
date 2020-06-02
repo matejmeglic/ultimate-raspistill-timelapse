@@ -80,7 +80,6 @@ import re
 import os
 import os.path
 import time
-import RPi.GPIO as GPIO
 import logging
 import datetime
 import subprocess
@@ -97,10 +96,12 @@ initHour = "%02d" % (d.hour)
 initMins = "%02d" % (d.minute)
 
 # config (change to your preference)
-# IMG settings
+# capture settings
 captureHourStart = 5 # start of the capture
 captureHourEnd = 21 # finish the capture
+captureElement = d.hour # for faster debug results you may change this to d.minute
 delayBetweenImages = 25 # Wait x+5 seconds before next capture (+5.5 sec goes because raspistill workflow for focusing, taking and saving a shot takes 5-5.5sec)
+# IMG settings
 imgWidth = 3280 # Max = 3280
 imgHeight = 2464 # Max = 2464
 imgParameters = "-sh 100 -q 100 -v -vf -hf -ev -4 -awb off -awbg 1.6,1.7 -mm average -n" #raspistill parameters, configure
@@ -171,7 +172,6 @@ while True:
 # or modify config section captureHourStart and captureHourEnd if you want to run it between time range
 # current settings doesn't allow 24-h or over-midnight timelapse capture (folder generation, system log etc.)
 
-        captureElement = d.hour # for faster debug results you may change tihs to d.minute
         if captureElement >= captureHourStart and captureElement < captureHourEnd :
 
             # Capture the CURRENT time (not start time as set above) to insert into each capture image filename
