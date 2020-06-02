@@ -149,13 +149,12 @@ if path.isdir(folderToSave) is False :
     os.mkdir(folderToSave)
 
 # Set up a system log file to store activities for any checks.
+log_file_path = str(folderToSave) + ".log"
 logStart = d.strftime("%y%m%d_%H%M%S")
-logging.basicConfig(filename=str(folderToSave) + ".log",level=logging.DEBUG)
+logging.basicConfig(filename=log_file_path,level=logging.DEBUG)
 logging.debug(" Ultimate RaspiLapse -- Started Log for " + str(folderToSave))
 logging.debug(str(logStart))
 logging.debug(" Logging session started at: "+ str(logStart))
-
-firstLog = str(folderToSave) # dirty hack to output session logs each day (row 342) because system log is not purged on a daily basis as intended
 
 # Run a WHILE Loop of infinitely
 # This is where magic happens
@@ -332,7 +331,6 @@ while True:
                 time.sleep(delayPostprocess)
                 print (" ====================================== Exporting logs from system log")
                 # session log is extracted from system log
-                log_file_path = str(folderToSave) + ".log"
                 from os import path #reset path (path was changed for counting total size)
                 if path.isdir(pathLogsW) is False :
                     os.mkdir(pathLogsW)
@@ -341,7 +339,7 @@ while True:
                 export_file_backup = str(backupHDDPath) + str(initFolderName) + file
                 regex = logStart
                 # read from system log
-                with open(firstLog, "r") as file:
+                with open(log_file_path, "r") as file:
                     match_list = []
                     signal1 = 0
                     for line in file:
@@ -402,8 +400,9 @@ while True:
             os.mkdir(folderToSave)
 
 # reinit logging (same file)
+        log_file_path = str(folderToSave) + ".log"
         logStart = d.strftime("%y%m%d_%H%M%S")
-        logging.basicConfig(filename=str(folderToSave) + ".log",level=logging.DEBUG)
+        logging.basicConfig(filename=log_file_path,level=logging.DEBUG)
         logging.debug(" Ultimate RaspiLapse -- Started Log for " + str(folderToSave))
         logging.debug(str(logStart))
         logging.debug(" Logging session started at: "+ str(logStart))
