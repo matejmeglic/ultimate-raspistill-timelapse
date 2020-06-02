@@ -78,11 +78,6 @@
 # Import section
 import re
 import os
-import os.path
-import time
-import logging
-import datetime
-import subprocess
 import glob
 import os.path
 from os import path
@@ -119,11 +114,11 @@ backupToHDD = True
 logExport = True
 # storage settings (file name is defined later in the code)
 initPath = "/home/pi/camera/" # init path for folder generation
-initFolderName= os.path.join(initYear,initMonth,initDate) +"_"+ os.path.join(initHour,initMins) # folder name generated, file name is generated later as it needs to be generated per image taken
+initFolderName= str(initYear) + str(initMonth) + str(initDate) +"_"+ str(initHour) + str(initMins) # folder name generated, file name is generated later as it needs to be generated per image taken
 # automation configs
 tlVideoExportPath = "/export" # subfolder to store full-res timelapse !! caution, do not use closing / as ffmpeg building timelapse video will not work
-exportFileName = os.path.join(initYear,initMonth,initDate) # additional logic for avoiding duplication in the code
-exportFileName4k = os.path.join(initYear,initMonth,initDate,"_4k")
+exportFileName = str(initYear) + str(initMonth) + str(initDate) # additional logic for avoiding duplication in the code
+exportFileName4k = str(initYear) + str(initMonth) + str(initDate)+"_4k"
 backupHDDPath = "/home/pi/backupaa/" # use sudo nano /etc/fstab to define mounting point for your HDD
 # youtube configs
 youtubeClientSecretsPath = "/home/pi/cs.json" # yt client secrets file path
@@ -148,20 +143,7 @@ backupToHDDInit = 0
 logExportInit = 0
 delayPostprocess = 1 # sleep between post-capture actions
 
-
-# calculating total size function (function called twice)
-def get_size(start_path = str(folderToSave)):
-    total_size = 0
-    for dirpath, dirnames, filenames in os.walk(start_path): # do not remove dirnames even if code editor returns error (to-do improvement to fix this)
-        for f in filenames:
-            fp = os.path.join(dirpath, f)
-            if not os.path.islink(fp):
-                total_size += os.path.getsize(fp)
-
-    return total_size
-
-# create inital folder structure 
-folderToSave =  os.path.join(initPath, initFolderName)
+folderToSave =  str(initPath) + str(initFolderName)
 if path.isdir(str(initPath)) is False :
     os.mkdir(str(initPath))
 if path.isdir(str(folderToSave)) is False :
@@ -209,32 +191,32 @@ while True:
 
             # if one doesn't want to upload to web, counter will be reset to never reach else part below
             if uploadToWeb == False :
-                wCounter = 0
+                wCounter = 1
 
             # Capture the image using raspistill.
             if wCounter <= wCounterRoll : # change to 9 - every 10th image will have special action (duplicated to alltime folder and github repo)
-                os.system("raspistill -w " + str(imgWidth) + " -h " + str(imgHeight) + " -o " + os.path.join(folderToSave,fileName,".jpg") + " "+ str(imgParameters))
-                systemLog.debug(' Full-res image saved: ' + os.path.join(folderToSave,fileName) )
+                os.system("raspistill -w " + str(imgWidth) + " -h " + str(imgHeight) + " -o " + str(folderToSave) + "/" + str(fileName) + ".jpg " + str(imgParameters))
+                systemLog.debug(' Full-res image saved: ' + str(folderToSave) + "/" + str(fileName) )
                 wCounter += 1
                 print("wCounter: "+str(wCounter))
             else :
                 # same process as above (taking normal picture)
-                os.system("raspistill -w " + str(imgWidth) + " -h " + str(imgHeight) + " -o " + os.path.join(folderToSave,fileName,".jpg") + " " + str(imgParameters))
-                systemLog.debug(' Full-res image saved: ' + os.path.join(folderToSave,fileName) )
+                os.system("raspistill -w " + str(imgWidth) + " -h " + str(imgHeight) + " -o " + str(folderToSave) + "/" + str(fileName) + ".jpg " + str(imgParameters))
+                systemLog.debug(' Full-res image saved: ' + str(folderToSave) + "/" + str(fileName) )
                 # create webpage image_shot every 10-th image to /img (webpage will refresh image every 5min; calculate as wCount max number in if statement
                 # x timeout between the picture x time to capture the picture as raspistill takes about 5.5 sec to take each picture)
                 if path.isdir(pathImgW) is False :
                     os.mkdir(pathImgW)
                     systemLog.debug(' Folder created: '+pathImgW)
                 # ffmpeg creates virtual copy in github repo
-                os.system("ffmpeg -i "+os.path.join(folderToSave,fileName,".jpg") +" -vf scale="+str(imgWidthWeb)+":"+ str(imgHeightWeb)+" " + os.path.join(pathImgW,fileName,".jpg")+" -y")
-                systemLog.debug(" Compressed image saved to www: "+os.path.join(pathImgW,fileName,".jpg")+" (UPDATED)" )
+                os.system("ffmpeg -i "+str(folderToSave) + "/" + str(fileName)+".jpg -vf scale="+str(imgWidthWeb)+":"+ str(imgHeightWeb)+" " + pathImgW + str(fileName) + ".jpg -y")
+                systemLog.debug(" Compressed image saved to www: "+pathImgW + str(fileName) + ".jpg (UPDATED)" )
                 # ffmpeg creates virtual (full-res) copy in /www_alltime folder (so you have easy access to all published photos)
-                if path.isdir(os.path.join(folderToSave,alltimePath)) is False :
-                    os.mkdir(os.path.join(folderToSave,alltimePath))
-                    systemLog.debug(' Folder created: ' + os.path.join(folderToSave,alltimePath))
-                os.system("ffmpeg -i "+os.path.join(folderToSave,fileName,".jpg")+" -vf scale="+str(imgWidth)+":"+ str(imgHeight) +" "+os.path.join(folderToSave,alltimePath,fileName,".jpg")+" -y")
-                systemLog.debug(' Compressed image saved: ' + os.path.join(folderToSave,fileName))
+                if path.isdir(str(folderToSave)+str(alltimePath)) is False :
+                    os.mkdir(str(folderToSave)+str(alltimePath))
+                    systemLog.debug(' Folder created: ' + str(folderToSave)+str(alltimePath))
+                os.system("ffmpeg -i "+str(folderToSave) + "/" + str(fileName)+".jpg -vf scale="+str(imgWidth)+":"+ str(imgHeight) +" "+str(folderToSave)+str(alltimePath)+ str(fileName) +".jpg -y")
+                systemLog.debug(' Compressed image saved: ' + str(folderToSave) + "/" + str(fileName))
                 wCounter = 1
 
         # Wait x+5 seconds before next capture (+5.5 sec goes because raspistill workflow for focusing, taking and saving a shot takes 5-5.5sec)
@@ -259,20 +241,20 @@ while True:
                 print (" ====================================== Sleeping ("+str(delayPostprocess)+")")
                 time.sleep(delayPostprocess) #change to 10
                 print (" ====================================== Exporting .JPGs to FullHD timelapse")
-                if path.isdir(os.path.join(folderToSave,tlVideoExportPath)) is False :
-                    os.mkdir(os.path.join(folderToSave,tlVideoExportPath))
-                    systemLog.debug(' FullHD Timelapse Folder created: ' + os.path.join(folderToSave,tlVideoExportPath))
-                os.system("ffmpeg -framerate 30 -pattern_type glob -i '"+ os.path.join(folderToSave,"/*.jpg")+"' -vf scale=1080:810 -qscale 0 " + os.path.join(folderToSave,tlVideoExportPath,exportFileName,".mp4"))
-                os.system("ffmpeg -framerate 30 -pattern_type glob -i '"+ os.path.join(folderToSave,"/*.jpg")+"' -qscale 0 " + os.path.join(folderToSave,tlVideoExportPath,exportFileName,".mp4"))
-                systemLog.debug(' FullHD Timelapse created: ' + os.path.join(folderToSave,tlVideoExportPath,exportFileName) )
+                if path.isdir(str(folderToSave) + str(tlVideoExportPath)) is False :
+                    os.mkdir(str(folderToSave) + str(tlVideoExportPath))
+                    systemLog.debug(' FullHD Timelapse Folder created: ' + str(folderToSave) + str(tlVideoExportPath))
+                os.system("ffmpeg -framerate 30 -pattern_type glob -i '"+ str(folderToSave) +"/*.jpg' -vf scale=1080:810 -qscale 0 " + str(folderToSave) + str(tlVideoExportPath)+ "/" + str(exportFileName) +".mp4")
+                os.system("ffmpeg -framerate 30 -pattern_type glob -i '"+ str(folderToSave) +"/*.jpg' -qscale 0 " + str(folderToSave) + str(tlVideoExportPath)+ "/" + str(exportFileName4k) +".mp4")
+                systemLog.debug(' FullHD Timelapse created: ' + str(folderToSave) + str(tlVideoExportPath) + "/" + str(exportFileName) )
                 createMovieInit = 0
             # after timelapse video is finished, it will be uploaded to youtube automatically
             if uploadToYoutubeInit == 1 :
                 print (" ====================================== Sleeping ("+str(delayPostprocess)+")")
                 time.sleep(delayPostprocess)
                 print (" ====================================== Uploading video to Youtube.com")
-                os.system("/usr/local/bin/youtube-upload --title=" + str(fileName) + " --client-secrets="+ youtubeClientSecretsPath +" --playlist='"+youtubePlaylistTitle+"' --embeddable=True "+ os.path.join(folderToSave,tlVideoExportPath,exportFileName,".mp4"))
-                systemLog.debug(' Video auto uploaded to youtube: ' + os.path.join(folderToSave,tlVideoExportPath,fileName) )
+                os.system("/usr/local/bin/youtube-upload --title=" + str(fileName) + " --client-secrets="+ youtubeClientSecretsPath +" --playlist='"+youtubePlaylistTitle+"' --embeddable=True "+ str(folderToSave) + str(tlVideoExportPath) + "/" + str(exportFileName) +".mp4")
+                systemLog.debug(' Video auto uploaded to youtube: ' + str(folderToSave) + str(tlVideoExportPath) + "/" + str(fileName) )
                 uploadToYoutubeInit = 0
 
             # after upload is finish, all captured images will be resized automatically + logging folder total size of captured images
@@ -280,7 +262,16 @@ while True:
                 print (" ====================================== Sleeping ("+str(delayPostprocess)+")")
                 time.sleep(delayPostprocess)
                 print (" ====================================== Compress all full-res files")
-# function was here
+            # calculating total size function (function called twice)
+                def get_size(start_path = str(folderToSave)):
+                    total_size = 0
+                    for dirpath, dirnames, filenames in os.walk(start_path): # do not remove dirnames even if code editor returns error (to-do improvement to fix this)
+                        for f in filenames:
+                            fp = os.path.join(dirpath, f)
+                            if not os.path.islink(fp):
+                                total_size += os.path.getsize(fp)
+
+                    return total_size
                 # logging part of resizing before compression (total size)
                 path, dirs, files = next(os.walk(str(folderToSave)))
                 fileCount = len(files)
@@ -315,29 +306,29 @@ while True:
                 if path.isdir(folderToSave) is False :
                     print("Source folder doesn't exist - cannot copy to HDD!")
                 else :
-                    if path.isdir(os.path.join(backupHDDPath,initFolderName)) is False :
-                        shutil.move(str(folderToSave),os.path.join(backupHDDPath,initFolderName))
-                        systemLog.debug(" Files successfully moved to: "+os.path.join(backupHDDPath,initFolderName))
+                    if path.isdir(str(backupHDDPath)+str(initFolderName)) is False :
+                        shutil.move(str(folderToSave), str(backupHDDPath)+str(initFolderName))
+                        systemLog.debug(" Files successfully moved to: "+str(backupHDDPath)+str(initFolderName))
                         print("Files moved to backup HDD")
                     else :
                         print("Same named file exists on both locations - check")
                         systemLog.debug(" Same named file exists on both locations - performing md5 hash check")
                         hashSource = dirhash(str(folderToSave), 'md5')
-                        hashHDD = dirhash(os.path.join(backupHDDPath,initFolderName),'md5')
+                        hashHDD = dirhash(str(backupHDDPath)+str(initFolderName),'md5')
                         print("Source hash: "+hashSource)
                         print("Source hash: "+hashHDD)
                         if hashSource == hashHDD :
                             print("Files already exist on HDD - move process stopped.")
-                            systemLog.debug(" CHECK - md5 hash check is the same - content already copied to: "+os.path.join(backupHDDPath,initFolderName)+". Move wasn't performed.")
+                            systemLog.debug(" CHECK - md5 hash check is the same - content already copied to: "+str(backupHDDPath)+str(initFolderName)+". Move wasn't performed.")
                         else :
-                            while path.isdir(os.path.join(backupHDDPath,initFolderName)+"_"+str(folderLoopInt)) :
-                                print("File "+os.path.join(backupHDDPath,initFolderName)+"_"+str(folderLoopInt)+" exists, try again.")
+                            while path.isdir(str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt)) :
+                                print("File "+str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt)+" exists, try again.")
                                 folderLoopInt+=1
                             else :
-                                shutil.move(str(folderToSave), os.path.join(backupHDDPath,initFolderName)+"_"+str(folderLoopInt))
+                                shutil.move(str(folderToSave), str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt))
                                 folderLoopInt = 1
                                 print("Files exist on HDD but hash didn't match - check HDD - potentially duplicated content.")
-                                systemLog.debug(" CHECK - possible duplication: files moved to: "+os.path.join(backupHDDPath,initFolderName)+"_"+str(folderLoopInt))
+                                systemLog.debug(" CHECK - possible duplication: files moved to: "+str(backupHDDPath)+str(initFolderName)+"_"+str(folderLoopInt))
                 systemLog.debug(' Logging session ended at: '+ str(d))
                 logEnd = d.strftime("%y%m%d_%H%M%S")
                 backupToHDDInit = 0
@@ -352,7 +343,7 @@ while True:
                     os.mkdir(pathLogsW)
                 file = str(logStart)+"-"+str(logEnd)+"_export.txt"
                 export_file = pathLogsW+ file
-                export_file_backup = os.path.join(backupHDDPath,initFolderName,file)
+                export_file_backup = str(backupHDDPath) + str(initFolderName) + file
                 regex = logStart
                 # read from system log
                 with open(str(systemLogPath), "r") as file:
@@ -408,11 +399,11 @@ while True:
         initDate = "%02d" % (d.day)
         initHour = "%02d" % (d.hour)
         initMins = "%02d" % (d.minute)
-        initFolderName= os.path.join(initYear,initMonth,initDate) +"_"+ os.path.join(initHour,initMins)
-        exportFileName = os.path.join(initYear,initMonth,initDate)
+        initFolderName= str(initYear) + str(initMonth) + str(initDate) +"_"+ str(initHour) + str(initMins)
+        exportFileName = str(initYear) + str(initMonth) + str(initDate)
 
 # reinit folder
-        folderToSave = os.path.join(initPath,initFolderName)   
+        folderToSave = str(initPath) + str(initFolderName)   
         
         if path.isdir(str(initPath)) is False :
             os.mkdir(str(initPath))
