@@ -105,7 +105,7 @@ initMins = "%02d" % (d.minute)
 # config (change to your preference)
 # capture settings
 captureHourStart = 0 # start of the capture
-captureHourEnd = 31 # finish the capture
+captureHourEnd = 50 # finish the capture
 delayBetweenImages = 25 # Wait x+5 seconds before next capture (+5.5 sec goes because raspistill workflow for focusing, taking and saving a shot takes 5-5.5sec)
 # IMG settings
 imgWidth = 3280 # Max = 3280
@@ -119,34 +119,35 @@ backupToHDD = True
 logExport = True
 # storage settings (file name is defined later in the code)
 initPath = "/home/pi/camera/" # init path for folder generation
-initFolderName= os.path.join(initYear,initMonth,initDate) +"_"+ os.path.join(initHour,initMins) # folder name generated, file name is generated later as it needs to be generated per image taken
+initFolderName= str(initYear) + str(initMonth) + str(initDate) +"_"+ str(initHour) + str(initMins) # folder name generated, file name is generated later as it needs to be generated per image taken
 # automation configs
-tlVideoExportPath = "/export" # subfolder to store full-res timelapse !! caution, do not use closing / as ffmpeg building timelapse video will not work
-exportFileName = os.path.join(initYear,initMonth,initDate) # additional logic for avoiding duplication in the code
-exportFileName4k = os.path.join(initYear,initMonth,initDate,"_4k")
-backupHDDPath = "/home/pi/backupaa/" # use sudo nano /etc/fstab to define mounting point for your HDD
+tlVideoExportPath = "export" # subfolder to store full-res timelapse !! caution, do not use closing / as ffmpeg building timelapse video will not work
+exportFileName = str(initYear) + str(initMonth) + str(initDate) # additional logic for avoiding duplication in the code
+exportFileName4k = str(initYear) + str(initMonth) + str(initDate)+"_4k"
+backupHDDPath = "/home/pi/backupaa" # use sudo nano /etc/fstab to define mounting point for your HDD
 # youtube configs
 youtubeClientSecretsPath = "/home/pi/cs.json" # yt client secrets file path
 youtubePlaylistTitle = "timelapse" # yt playlist name (playlist has to be created manually in youtube ahead of capture)
 # git upload configs
-uploadToWeb = False # this switch controls uploading every x-th image to separate folder alongside with alltime image creation
-wCounterRoll = 9 # how often a compressed picture is duplicated in github www repo (and in alltime folder)
+uploadToWeb = True # this switch controls uploading every x-th image to separate folder alongside with alltime image creation
+wCounterRoll = 5 # how often a compressed picture is duplicated in github www repo (and in alltime folder)
 imgWidthWeb = 1920 # Max = 3280 width and height of www repo image (smaller to decrease page loading time and file transfer)
 imgHeightWeb = 1442 # Max = 2464
-alltimePath = "/www_alltime/" # subfolder to store full-res pictures that were sent to www repo
-pathLogsW = "/home/pi/ku_tl_cam/public/logs/" # logs in github repo
-pathImgW = "/home/pi/ku_tl_cam/public/img/" # last image in github repo
+alltimePath = "www_alltime" # subfolder to store full-res pictures that were sent to www repo
+pathLogsW = "/home/pi/ku_tl_cam/public/logs" # logs in github repo
+pathImgW = "/home/pi/ku_tl_cam/public/img" # last image in github repo
 
 # DON'T CHANGE: inits for different processes to run after timelapse is completed
 dateToday = datetime.date.today() # for running timelapse for multiple days (auto generating folders and log separation)
 dateIsYesterday = datetime.date.today()
-wCounter = 1
+wCounter = 0
 createMovieInit = 0
 uploadToYoutubeInit = 0
 compressionInit = 0
 backupToHDDInit = 0
 logExportInit = 0
-delayPostprocess = 1 # sleep between post-capture actions
+delayPostprocess = 1 # timeout between post-capture actions
+folderToSave =  os.path.join(initPath, initFolderName)
 
 
 # calculating total size function (function called twice)
@@ -161,7 +162,6 @@ def get_size(start_path = str(folderToSave)):
     return total_size
 
 # create inital folder structure 
-folderToSave =  os.path.join(initPath, initFolderName)
 if path.isdir(str(initPath)) is False :
     os.mkdir(str(initPath))
 if path.isdir(str(folderToSave)) is False :
@@ -212,30 +212,31 @@ while True:
                 wCounter = 0
 
             # Capture the image using raspistill.
-            if wCounter <= wCounterRoll : # change to 9 - every 10th image will have special action (duplicated to alltime folder and github repo)
-                os.system("raspistill -w " + str(imgWidth) + " -h " + str(imgHeight) + " -o " + os.path.join(folderToSave,fileName,".jpg") + " "+ str(imgParameters))
+            if wCounter < wCounterRoll : # change wCounterRoll to 9 - every 10th image will have special action (duplicated to alltime folder and github repo)
+                os.system("raspistill -w " + str(imgWidth) + " -h " + str(imgHeight) + " -o " + os.path.join(folderToSave,fileName)+".jpg "+ str(imgParameters))
                 systemLog.debug(' Full-res image saved: ' + os.path.join(folderToSave,fileName) )
                 wCounter += 1
-                print("wCounter: "+str(wCounter))
+                print("GIT Upload Counter: "+str(wCounter)+" / "+str(wCounterRoll))
             else :
                 # same process as above (taking normal picture)
-                os.system("raspistill -w " + str(imgWidth) + " -h " + str(imgHeight) + " -o " + os.path.join(folderToSave,fileName,".jpg") + " " + str(imgParameters))
+                os.system("raspistill -w " + str(imgWidth) + " -h " + str(imgHeight) + " -o " + os.path.join(folderToSave,fileName)+".jpg " + str(imgParameters))
                 systemLog.debug(' Full-res image saved: ' + os.path.join(folderToSave,fileName) )
                 # create webpage image_shot every 10-th image to /img (webpage will refresh image every 5min; calculate as wCount max number in if statement
                 # x timeout between the picture x time to capture the picture as raspistill takes about 5.5 sec to take each picture)
                 if path.isdir(pathImgW) is False :
                     os.mkdir(pathImgW)
-                    systemLog.debug(' Folder created: '+pathImgW)
+                    systemLog.debug(' Folder created: '+str(pathImgW))
                 # ffmpeg creates virtual copy in github repo
-                os.system("ffmpeg -i "+os.path.join(folderToSave,fileName,".jpg") +" -vf scale="+str(imgWidthWeb)+":"+ str(imgHeightWeb)+" " + os.path.join(pathImgW,fileName,".jpg")+" -y")
-                systemLog.debug(" Compressed image saved to www: "+os.path.join(pathImgW,fileName,".jpg")+" (UPDATED)" )
+                os.system("ffmpeg -i "+os.path.join(folderToSave,fileName)+".jpg -vf scale="+str(imgWidthWeb)+":"+ str(imgHeightWeb)+" " + os.path.join(pathImgW,fileName)+".jpg -y")
+                systemLog.debug(" Compressed image saved to www: "+os.path.join(pathImgW,fileName)+".jpg (UPDATED)" )
                 # ffmpeg creates virtual (full-res) copy in /www_alltime folder (so you have easy access to all published photos)
                 if path.isdir(os.path.join(folderToSave,alltimePath)) is False :
                     os.mkdir(os.path.join(folderToSave,alltimePath))
                     systemLog.debug(' Folder created: ' + os.path.join(folderToSave,alltimePath))
-                os.system("ffmpeg -i "+os.path.join(folderToSave,fileName,".jpg")+" -vf scale="+str(imgWidth)+":"+ str(imgHeight) +" "+os.path.join(folderToSave,alltimePath,fileName,".jpg")+" -y")
+                os.system("ffmpeg -i "+os.path.join(folderToSave,fileName)+".jpg -vf scale="+str(imgWidth)+":"+ str(imgHeight) +" "+os.path.join(folderToSave,alltimePath,fileName)+".jpg -y")
                 systemLog.debug(' Compressed image saved: ' + os.path.join(folderToSave,fileName))
                 wCounter = 1
+                print("GIT Upload Counter: "+str(wCounter)+" / "+str(wCounterRoll)+" Image queued for upload.")
 
         # Wait x+5 seconds before next capture (+5.5 sec goes because raspistill workflow for focusing, taking and saving a shot takes 5-5.5sec)
             time.sleep(delayBetweenImages)
@@ -351,7 +352,7 @@ while True:
                 if path.isdir(pathLogsW) is False :
                     os.mkdir(pathLogsW)
                 file = str(logStart)+"-"+str(logEnd)+"_export.txt"
-                export_file = pathLogsW+ file
+                export_file = os.path.join(pathLogsW,file)
                 export_file_backup = os.path.join(backupHDDPath,initFolderName,file)
                 regex = logStart
                 # read from system log
@@ -408,23 +409,22 @@ while True:
         initDate = "%02d" % (d.day)
         initHour = "%02d" % (d.hour)
         initMins = "%02d" % (d.minute)
-        initFolderName= os.path.join(initYear,initMonth,initDate) +"_"+ os.path.join(initHour,initMins)
-        exportFileName = os.path.join(initYear,initMonth,initDate)
+        initFolderName= str(initYear) + str(initMonth) + str(initDate) +"_"+ str(initHour) + str(initMins)
+        exportFileName = str(initYear) + str(initMonth) + str(initDate)
+        wCounter = 0
+
+        captureHourStart = 2 # start of the capture
+        captureHourEnd = 10 # finish the capture
 
 # reinit folder
         folderToSave = os.path.join(initPath,initFolderName)   
         
         if path.isdir(str(initPath)) is False :
             os.mkdir(str(initPath))
-            print("InitPath created")
         if path.isdir(str(folderToSave)) is False :
             os.mkdir(str(folderToSave))
-            print("folderToSave created")
 
 # reinit logging (same file)
-        systemLog = logging.getLogger('Timelapse logging')
-        systemLog.setLevel(logging.DEBUG)
-        systemLog.addHandler(logging.handlers.RotatingFileHandler(systemLogPath))
         systemLog.handlers[0].doRollover()
 
         logStart = d.strftime("%y%m%d_%H%M%S")
