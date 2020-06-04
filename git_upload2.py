@@ -20,7 +20,7 @@ from os.path import isfile, join
    
     
 initPath = "/home/pi/ultimate-raspistill-timelapse" # set your repository path
-text = "second automation"
+text = "cmd automation"
 
 # git upload on img change
 os.system('git cmp "'+str(text)+'"')
