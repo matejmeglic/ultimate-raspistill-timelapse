@@ -20,11 +20,8 @@ from os.path import isfile, join
    
     
 initPath = "/home/pi/ultimate-raspistill-timelapse" # set your repository path
+text = "second automation"
 
 # git upload on img change
-os.system("git add -A")
-print("IMG - add")
-os.system("git commit -m 'upload")
-print("IMG - commit")
-os.system("git push -u origin master")
-print("IMG - Git push - file updated successfully!")
+os.system('git cmp "'+str(text)+'"')
+
