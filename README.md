@@ -55,6 +55,11 @@ d. set up PI
     - Pi Start button (open menu) - Preferences - R Pi Configuration - interfaces tab -  enable camera, VNC, SSH
     - set up VNC (for remote access and debugging, find yt tutorial like https://www.youtube.com/watch?v=XjpquXPf24s, make sure to check VNC server boots on start)
     - sudo raspi-config - enable running it without HDMI cable attached (had problems where I was not able to access remote desktop on RPI4)
+    - sudo nano /etc/sysctl.conf change vm.swappiness=1
+    - free -m <-- check RAM allocation
+    - ps -o pid,user,%mem,command ax | sort -b -k3 -r <-- check which processes take most memory and optimize if neccessary
+         (in my case teamviewer I set up took 35% of available memory on 1GB RAM Pi3 so I disabled it with sudo teamviewer -daemon disable)
+    - sudo nano /etc/fstab add line	tmpfs	/TimelapseTemp	tmpfs	nodev,nosuid,size=250M	0	0 (save with ctrl+x)
     - reboot
 
 
@@ -140,7 +145,7 @@ Set up OAuth file
 - connect HDD via usb
 - df -h <-- shows all mounted devices, HDD should like /dev/sda1
 - sudo nano /etc/fstab
-- add entry: /dev/sda1 /home/pi/backup ntfs defaults 0 0
+- add entry: /dev/sda1 /home/pi/backup	ntfs	defaults,nofail	0	0
 (spaces should be tabs, path could be smth else, but be careful for access rights, ntfs could be different format such as ext4)
 - sudo reboot
 - check mount path (contents of the disk should be visible)
