@@ -21,7 +21,7 @@ logCounter = 0
 while True:
    
     # IMG upload
-    initPath = "/home/pi/ku_tl_cam/public/img/" # set your repository path
+    initPath = "/home/pi/tl_cam/public/img/" # set your repository path
     if path.isdir(initPath) is False :
         os.mkdir(initPath)
     onlyFiles = [f for f in listdir(initPath) if isfile(join(initPath, f))]
@@ -46,7 +46,7 @@ while True:
         print("IMG - No changes - "+ str(len(onlyFiles)) +" image in the IMG folder!")
     
     # LOG upload
-    initPathLogs = "/home/pi/ku_tl_cam/public/logs/" # set your repository path
+    initPathLogs = "/home/pi/tl_cam/public/logs/" # set your repository path
     if path.isdir(initPathLogs) is False :
         os.mkdir(initPathLogs)
     onlyFilesLogs = [f for f in listdir(initPathLogs) if isfile(join(initPathLogs, f))]

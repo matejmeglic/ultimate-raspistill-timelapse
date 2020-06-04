@@ -34,7 +34,7 @@ Run script with: **sudo python /your/file/location/ultimate_timelapse.py**
 
 ### Preffered way - set up a cronjob
 to schedule run at system startup run console nano **crontab -e **(set time interval within the code)
-**@reboot /usr/bin/python /home/git_upload.py
+**@reboot sleep 60 && eval `ssh-agent -s` && ssh-add ~/.ssh/id_rsa && ssh-add -l && cd /home/pi/ultimate-raspistill-timelapse && sudo -u pi python /home/pi/ultimate-raspistill-timelapse/git_upload.py > /home/pi/git-notes.txt 2>&1
 @reboot /usr/bin/python /home/pi/ultimate_timelapse.py**
 
 
