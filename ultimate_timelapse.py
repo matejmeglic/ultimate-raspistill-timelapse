@@ -258,14 +258,15 @@ while True:
             # ffmpeg will create 1080p timelapse and store it in /export folder for youtube upload
             if createMovieInit == 1 :
                 print (" ====================================== Sleeping ("+str(delayPostprocess)+")")
-                time.sleep(delayPostprocess) #change to 10
+                time.sleep(delayPostprocess)
                 print (" ====================================== Exporting .JPGs to FullHD timelapse")
                 if path.isdir(os.path.join(folderToSave,tlVideoExportPath)) is False :
                     os.mkdir(os.path.join(folderToSave,tlVideoExportPath))
                     systemLog.debug(' FullHD Timelapse Folder created: ' + os.path.join(folderToSave,tlVideoExportPath))
                 os.system("ffmpeg -framerate 30 -pattern_type glob -i '"+ os.path.join(folderToSave,"/*.jpg")+"' -vf scale=1080:810 -qscale 0 " + os.path.join(folderToSave,tlVideoExportPath,exportFileName,".mp4"))
-                os.system("ffmpeg -framerate 30 -pattern_type glob -i '"+ os.path.join(folderToSave,"/*.jpg")+"' -qscale 0 " + os.path.join(folderToSave,tlVideoExportPath,exportFileName,".mp4"))
                 systemLog.debug(' FullHD Timelapse created: ' + os.path.join(folderToSave,tlVideoExportPath,exportFileName) )
+                os.system("ffmpeg -framerate 30 -pattern_type glob -i '"+ os.path.join(folderToSave,"/*.jpg")+"' -qscale 0 " + os.path.join(folderToSave,tlVideoExportPath,exportFileName4k,".mp4"))
+                systemLog.debug(' 4k Timelapse created: ' + os.path.join(folderToSave,tlVideoExportPath,exportFileName4k) )
                 createMovieInit = 0
             # after timelapse video is finished, it will be uploaded to youtube automatically
             if uploadToYoutubeInit == 1 :
@@ -412,9 +413,6 @@ while True:
         initFolderName= str(initYear) + str(initMonth) + str(initDate) +"_"+ str(initHour) + str(initMins)
         exportFileName = str(initYear) + str(initMonth) + str(initDate)
         wCounter = 0
-
-        captureHourStart = 2 # start of the capture
-        captureHourEnd = 10 # finish the capture
 
 # reinit folder
         folderToSave = os.path.join(initPath,initFolderName)   

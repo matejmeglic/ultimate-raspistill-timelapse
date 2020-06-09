@@ -146,7 +146,7 @@ Set up OAuth file
 - df -h <-- shows all mounted devices, HDD should like /dev/sda1
 - sudo nano /etc/fstab
 - add entry: /dev/sda1 /home/pi/backup	ntfs	defaults,nofail	0	0
-(spaces should be tabs, path could be smth else, but be careful for access rights, ntfs could be different format such as ext4)
+(spaces should be tabs, path could be smth else, but be careful for access rights, ntfs could be a different format such as ext4)
 - sudo reboot
 - check mount path (contents of the disk should be visible)
 *NOTE: after you do this, normal startup of the Pi without connected HDD will be interrupted.*
