@@ -69,8 +69,8 @@ d. set up PI
 - sudo raspi-config - enable running it without HDMI cable attached (had problems where I was not able to access remote desktop on RPI4)
 - sudo nano /etc/sysctl.conf change vm.swappiness=1
 ~~- free -m <-- check RAM allocation
-- ps -o pid,user,%mem,command ax | sort -b -k3 -r <-- check which processes take most memory and optimize if neccessary (in my case teamviewer I set up took 35% of available memory on 1GB RAM Pi3 so I disabled it with sudo teamviewer -daemon disable)
-- sudo nano /etc/fstab add line	tmpfs	/TimelapseTemp	tmpfs	nodev,nosuid,size=250M	0	0 (save with ctrl+x)~~
+- ps -o pid,user,%mem,command ax | sort -b -k3 -r <-- check which processes take most memory and optimize if neccessary (in my case teamviewer I set up took 35% of available memory on 1GB RAM Pi3 so I disabled it with sudo teamviewer -daemon disable)~~
+- ~~sudo nano /etc/fstab add line	tmpfs	/TimelapseTemp	tmpfs	nodev,nosuid,size=250M	0	0 (save with ctrl+x)~~
 - reboot
 
 
@@ -192,26 +192,24 @@ c/p
 #### 9. REDIS QUEUE
 ~~REDIS and RQ
 
-sudo pip3 install rq
-npm install redis
-npm install redis-server
-npm install -g npm
+~~sudo pip3 install rq~~
+~~npm install redis~~
+~~npm install redis-server~~
+~~npm install -g npm~~
 
-sudo apt install tcl8.6
-sudo apt install tk8.6
+~~sudo apt install tcl8.6~~
+~~sudo apt install tk8.6~~
 
-refer to: https://python-rq.org/
+~~refer to: https://python-rq.org/~~
+~~I downloaded http://download.redis.io/redis-stable.tar.gz~~
 
----
-I downloaded http://download.redis.io/redis-stable.tar.gz
+~~tar xvzf redis-stable.tar.gz~~
+~~cd redis-stable~~
+~~make~~
+~~make test~~
+~~I added this line to my .bash_profile:~~
 
-tar xvzf redis-stable.tar.gz
-cd redis-stable
-make
-make test
-I added this line to my .bash_profile:
-
-cd <-- go to user folder
-sudo nano .bash_profile
-export PATH=$PATH:$HOME/python-scripts/redis-stable/src
-ctrl+x~~
+~~cd <-- go to user folder~~
+~~sudo nano .bash_profile~~
+~~export PATH=$PATH:$HOME/python-scripts/redis-stable/src~~
+~~ctrl+x~~
