@@ -178,13 +178,19 @@ Set up OAuth file
 #### 7. Set up cronjob (for automatic capture and git_upload start on power)
 to schedule run at system startup run console nano **crontab -e **(set time interval within the code):
 c/p
+
 @reboot sleep 60 && eval `ssh-agent -s` && ssh-add ~/.ssh/id_rsa && ssh-add -l && cd /home/pi/tl_cam && sudo -u pi python /home/pi/tl_cam/git_upload.py
+
 @reboot sudo -u pi /usr/bin/python3 /home/pi/python-scripts/ultimate_timelapse.py > /home/pi/ultimate_notes 2>&1
 
 ##@reboot sudo -u pi cd /home/pi/tl_cam && python /home/pi/tl_cam/git_upload.py > /home/pi/git-up-notes 2>&1
+
 ##@reboot sudo -u pi /home/pi/python-scripts/youtube.sh > /home/pi/youtube_log.txt 2>&1
+
 ##@reboot sudo -u pi /home/pi/python-scripts/redis-stable/src/redis-server /home/pi/python-scripts/redis-stable/redis.conf > /home/pi/redis-log 2>&1
+
 ##@reboot sleep 10 && cd /home/pi/python-scripts/ && sudo -u pi rq worker > /home/pi/worker 2>&1
+
 
 #### 8. Enable SUNSET/SUNRISE capture option
 
