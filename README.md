@@ -59,40 +59,39 @@ a. download Raspbian desktop image + extract ZIP file
 b. download balenaEtcher
 c. burn image on SD card
 d. set up PI 
-    - location and language,
-    - user pi password,
-    - wifi,
-    - download updates (might take a while),
-    - keyboard layout, 
-    - Pi Start button (open menu) - Preferences - R Pi Configuration - interfaces tab -  enable camera, VNC, SSH
-    - set up VNC (for remote access and debugging, find yt tutorial like https://www.youtube.com/watch?v=XjpquXPf24s, make sure to check VNC server boots on start)
-    - sudo raspi-config - enable running it without HDMI cable attached (had problems where I was not able to access remote desktop on RPI4)
-    - sudo nano /etc/sysctl.conf change vm.swappiness=1
-    ~~- free -m <-- check RAM allocation
-    - ps -o pid,user,%mem,command ax | sort -b -k3 -r <-- check which processes take most memory and optimize if neccessary
-         (in my case teamviewer I set up took 35% of available memory on 1GB RAM Pi3 so I disabled it with sudo teamviewer -daemon disable)
-    - sudo nano /etc/fstab add line	tmpfs	/TimelapseTemp	tmpfs	nodev,nosuid,size=250M	0	0 (save with ctrl+x)~~
-    - reboot
+- location and language,
+- user pi password,
+- wifi,
+- download updates (might take a while),
+- keyboard layout, 
+- Pi Start button (open menu) - Preferences - R Pi Configuration - interfaces tab -  enable camera, VNC, SSH
+- set up VNC (for remote access and debugging, find yt tutorial like https://www.youtube.com/watch?v=XjpquXPf24s, make sure to check VNC server boots on start)
+- sudo raspi-config - enable running it without HDMI cable attached (had problems where I was not able to access remote desktop on RPI4)
+- sudo nano /etc/sysctl.conf change vm.swappiness=1
+~~- free -m <-- check RAM allocation
+- ps -o pid,user,%mem,command ax | sort -b -k3 -r <-- check which processes take most memory and optimize if neccessary (in my case teamviewer I set up took 35% of available memory on 1GB RAM Pi3 so I disabled it with sudo teamviewer -daemon disable)
+- sudo nano /etc/fstab add line	tmpfs	/TimelapseTemp	tmpfs	nodev,nosuid,size=250M	0	0 (save with ctrl+x)~~
+- reboot
 
 
 #### 2. Set up prerequisites for timelapse script
 *use raspishot.sh to test camera*
-    -  As you assure that Pi works as intended, shut it down and connect the camera (read instructions on static electricity, don't forget to take SD card out if you are using RPI housing, peel protective layer off). 
-    -  Download files from this git repo (GIT CLONE REPOSITORY_LINK)
-    -  chmod +x /home/pi/ultimate-raspistill-timelapse/raspishot.sh      <-- this will make .sh script executable
-    -  Use raspishot.sh to take photos and set up camera settings if needed (refer to the documentation, use text editor to modify output folder of the script) 
+-  As you assure that Pi works as intended, shut it down and connect the camera (read instructions on static electricity, don't forget to take SD card out if you are using RPI housing, peel protective layer off). 
+-  Download files from this git repo (GIT CLONE REPOSITORY_LINK)
+-  chmod +x /home/pi/ultimate-raspistill-timelapse/raspishot.sh      <-- this will make .sh script executable
+-  Use raspishot.sh to take photos and set up camera settings if needed (refer to the documentation, use text editor to modify output folder of the script) 
 HURA - first captured photos should be in the folder
-    - sudo apt update
-    - sudo apt upgrade (might take a while)
-    - sudo apt-get install xscreensaver (after that turn screen saver of in Raspi-menu - Preferences - Screensaver)
-    - sudo reboot
-    - pip install checksumdir
-    - sudo apt install ffmpeg
+- sudo apt update
+- sudo apt upgrade (might take a while)
+- sudo apt-get install xscreensaver (after that turn screen saver of in Raspi-menu - Preferences - Screensaver)
+- sudo reboot
+- pip install checksumdir
+- sudo apt install ffmpeg
 If you disable all the post-capture actions 
-    - set all post-capture actions to **False** in the config section, 
-    - recheck all folder paths in config, 
-    - now a rudimentary timelapse should work 
-    - try with terminal - cd FOLDER - python ultimate_timelapse.py - interrupt process with CTRL+C (note that you can change captureElement from hours to minutes in the code)
+- set all post-capture actions to **False** in the config section, 
+- recheck all folder paths in config, 
+- now a rudimentary timelapse should work 
+- try with terminal - cd FOLDER - python ultimate_timelapse.py - interrupt process with CTRL+C (note that you can change captureElement from hours to minutes in the code)
 
 
 #### 3. ffmpeg setup (compression and timelapse)
