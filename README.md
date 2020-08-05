@@ -1,15 +1,30 @@
 # Ultimate Raspistill timelapse 
-## Fully automated Raspberry Pi Camera datetime automated timelapse that works 
-- v0.1 - 20200505 stable version. bugs can be found, but after rudimentary testing (2d), main workflow works as expected on RPI4. 
-Everyone is encouraged to do PR and contribute.
+## A fully automated Raspberry Pi Camera datetime automated timelapse that works 
+v0.1 - 20200505. main workflow works as expected on RPI4. 
+v0.2 - 20200510. added **user_settings** and a complete rewrite.
+What's new?
+- user_settings.py file where users can set their own settings
+- custom timeout (set to 60s) when capture is not active to avoid throttling of the cpu in endless loop
+- multiple interval capture support with precise hour:minute settings (before hourly only)
+- sunrise:sunset capture support with offset (sun capture has priority over interval capture)
+- overnight capture support
+- better file names that enable capture session to continue in case of power loss
+- moved storage to an external HDD as a primary storage point (removed RAM and SD storage, also avoided the bug where pi would stopped working due to 0 space on SD card)
+- implemented DELETE scenario for cases where user would want to store on SD card
+- better variable handling in a Config class (code simplification)
 
-## Thank you section
-Special thanks go to James Moore, Fotosy who created initial python script that I relied heavily when creating this extended version, to Arnau Sanchez for sharing automatic youtube uploader and to Marko Trebizan for being a mentor one can dream of.
+To-Do (v0.3): 
+- logging (was lost in v0.2)
+- implement post-capture functionalities for a missed past partial capture on boot (there was a capture that was interrupted due to power loss and when power is restored, capture time is over, but some of the files still linger. Should implement a system to remember which capture was started but didn't finish to run it when idle)
+- upload to FTP or smth (tried to implement gDrive storage, but it requires personal identification [.json is not enough] so I skipped it for now)
+- better async upload to web (tried to set up redis queue but didn't finished as this git thingy does the job for me - after a rudimentary troubleshooting, this is not causing the camera error with pink stripes)
+- better support to handle lower models (RPI3 and lower require different ffmpeg command for compiling 4k video as all RAM is used)
+- clean test-scripts folder
 
 ## Description
 This script was created because it is known that original raspistill shell timelapse feature cannot save images with filenames set as date or datetime (yyyy-mm-dd), only as a sequence (image%02d) therefore, new script was developed in pyhon to overcome these obstacles plus automate workflows so that it can be used as a standalone timelapse camera. 
  
-If set correctly (cronjob), this script can boot itself up after power is provided and start capture images in given interval (anything from 0-24 will do, but it can't run overnight in current state). Capture can be perpetual as folder generate separately every day at midnight system time. After capturing session is finished (author aimed at 14h/d capture), post-capture processes take place, such as 1) automatic creation of timelapse video, 2) automatic upload to youtube, 3) automatic resizing of the images, 4) automatic move of folder from systemSD to externalHDD and 5) log extraction. Author originally intender to use this camera live on a dynamically built website (React+GitHub+Netlify) so this code sends every n-th image to the github repo and is uploaded with another accompanying script. For serious usage, rebuilding the code to another data storage provider is advised. Git upload can be turned off in the config. Define the location where you wish to save files (initPath in config) If you run a local web server on Apache you could set this to /var/www/ to make them accessible via web browser or use my idea of feeding last image to github repo
+If set correctly (cronjob), this script can boot itself up after power is provided and start capture images in any given interval. After capturing session is finished (author aimed at 14h/d capture), post-capture processes take place, such as 1) automatic creation of timelapse video, 2) automatic upload to youtube, 3) automatic resizing of the images. Script sends every n-th image to the github repo and is uploaded with another accompanying script. For serious usage, rebuilding the code to another data storage provider is advised. Git upload can be turned off in the config. Define the location where you wish to save files (initPath in config) If you run a local web server on Apache you could set this to /var/www/ to make them accessible via web browser or use my idea of feeding last image to github repo
 
 ## Building blocks (prerequisites)
 - https://bitbucket.org/fotosyn/fotosynlabs/src/9819edca892700e459b828517bba82b0984c82e4/RaspiLapseCam/raspiLapseCam.py?at=master <--original repo
@@ -23,19 +38,16 @@ If set correctly (cronjob), this script can boot itself up after power is provid
 When setting up the environment for this script, please refer to prereq repos stated above for troubleshooting (GH issues are key)
 
 ## Contents
-Attached are four scripts:
+Attached are numerous scripts:
 1) **ffmpeg.sh** - *TEST TOOL: *creates a timelapse video (specify source and destination), useful for testing video quality (bitrate) [settings between 0-best and 51-worst]
 2) **git_upload.py** - *GIT CRON UPLOADER:* uploads file every X seconds, could be reworked to keep multiple files online at once - **require SSH connection to your GH repo**
 3) **raspishot.sh** - *TEST TOOL:* is intended to fully customize your camera manual settings to get best results (auto wb was brown [not-correct] in my case)
-4) **ultimate_timelapse.py** - actual timelapse script
+4) **raspilapse.py** - actual timelapse script
 
 ## Running scripts
 Run script with: **sudo python /your/file/location/ultimate_timelapse.py**
 
-### Preffered way - set up a cronjob
-to schedule run at system startup run console nano **crontab -e **(set time interval within the code)
-**@reboot sleep 60 && eval `ssh-agent -s` && ssh-add ~/.ssh/id_rsa && ssh-add -l && cd /home/pi/ultimate-raspistill-timelapse && sudo -u pi python /home/pi/ultimate-raspistill-timelapse/git_upload.py > /home/pi/git-notes.txt 2>&1
-@reboot /usr/bin/python /home/pi/ultimate_timelapse.py**
+
 
 
 
@@ -56,10 +68,10 @@ d. set up PI
     - set up VNC (for remote access and debugging, find yt tutorial like https://www.youtube.com/watch?v=XjpquXPf24s, make sure to check VNC server boots on start)
     - sudo raspi-config - enable running it without HDMI cable attached (had problems where I was not able to access remote desktop on RPI4)
     - sudo nano /etc/sysctl.conf change vm.swappiness=1
-    - free -m <-- check RAM allocation
+    ~~- free -m <-- check RAM allocation
     - ps -o pid,user,%mem,command ax | sort -b -k3 -r <-- check which processes take most memory and optimize if neccessary
          (in my case teamviewer I set up took 35% of available memory on 1GB RAM Pi3 so I disabled it with sudo teamviewer -daemon disable)
-    - sudo nano /etc/fstab add line	tmpfs	/TimelapseTemp	tmpfs	nodev,nosuid,size=250M	0	0 (save with ctrl+x)
+    - sudo nano /etc/fstab add line	tmpfs	/TimelapseTemp	tmpfs	nodev,nosuid,size=250M	0	0 (save with ctrl+x)~~
     - reboot
 
 
@@ -145,8 +157,8 @@ Set up OAuth file
 - connect HDD via usb
 - df -h <-- shows all mounted devices, HDD should like /dev/sda1
 - sudo nano /etc/fstab
-- add entry: /dev/sda1 /home/pi/backup	ntfs	defaults,nofail	0	0
-(spaces should be tabs, path could be smth else, but be careful for access rights, ntfs could be a different format such as ext4)
+- add entry like: /dev/sda1 /home/pi/backup	ntfs	defaults,nofail	0	0
+(spaces should be tabs, path could be smth else, but be careful for access rights, ntfs could be a different format such as ext4 - this mounts hdd as /backup/ and is your HDD_PATH in user_settings)
 - sudo reboot
 - check mount path (contents of the disk should be visible)
 *NOTE: after you do this, normal startup of the Pi without connected HDD will be interrupted.*
@@ -158,13 +170,49 @@ Set up OAuth file
     - test uploading to GIT
     - create appropriate folder structure (up to your liking, I use repo/public/img and disable automatic building and only reference photo using GIT API)
     - adjust config paths to point to that folder
+    - shell - cd into the git folder
+    - run command **git init**
     - test run /path/to/git_upload.py and create a capture to check if you can push captured photo to GIT  
 
 #### 7. Set up cronjob (for automatic capture and git_upload start on power)
-@reboot cd /path/to && sudo -u pi /usr/bin/python /path/to/git_upload.py <-- go into folder and then run script command as an user
-@reboot /usr/bin/python /path/to/ultimate_timelapse.py
+to schedule run at system startup run console nano **crontab -e **(set time interval within the code):
+c/p
+@reboot sleep 60 && eval `ssh-agent -s` && ssh-add ~/.ssh/id_rsa && ssh-add -l && cd /home/pi/tl_cam && sudo -u pi python /home/pi/tl_cam/git_upload.py
+@reboot sudo -u pi /usr/bin/python3 /home/pi/python-scripts/ultimate_timelapse.py > /home/pi/ultimate_notes 2>&1
 
-todo:
-- check logs
-- config for 4k and fullHd upload
-- git cron
+##@reboot sudo -u pi cd /home/pi/tl_cam && python /home/pi/tl_cam/git_upload.py > /home/pi/git-up-notes 2>&1
+##@reboot sudo -u pi /home/pi/python-scripts/youtube.sh > /home/pi/youtube_log.txt 2>&1
+##@reboot sudo -u pi /home/pi/python-scripts/redis-stable/src/redis-server /home/pi/python-scripts/redis-stable/redis.conf > /home/pi/redis-log 2>&1
+##@reboot sleep 10 && cd /home/pi/python-scripts/ && sudo -u pi rq worker > /home/pi/worker 2>&1
+
+#### 8. Enable SUNSET/SUNRISE capture option
+
+- pip3 install suntime
+- pip3 install astral
+
+#### 9. REDIS QUEUE
+~~REDIS and RQ
+
+sudo pip3 install rq
+npm install redis
+npm install redis-server
+npm install -g npm
+
+sudo apt install tcl8.6
+sudo apt install tk8.6
+
+refer to: https://python-rq.org/
+
+---
+I downloaded http://download.redis.io/redis-stable.tar.gz
+
+tar xvzf redis-stable.tar.gz
+cd redis-stable
+make
+make test
+I added this line to my .bash_profile:
+
+cd <-- go to user folder
+sudo nano .bash_profile
+export PATH=$PATH:$HOME/python-scripts/redis-stable/src
+ctrl+x~~
