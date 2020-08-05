@@ -1,8 +1,10 @@
 # Ultimate Raspistill timelapse 
 ## A fully automated Raspberry Pi Camera datetime automated timelapse that works 
 v0.1 - 20200505. main workflow works as expected on RPI4. 
+
 v0.2 - 20200510. added **user_settings** and a complete rewrite.
-What's new?
+
+### What's new?
 - user_settings.py file where users can set their own settings
 - custom timeout (set to 60s) when capture is not active to avoid throttling of the cpu in endless loop
 - multiple interval capture support with precise hour:minute settings (before hourly only)
@@ -13,7 +15,7 @@ What's new?
 - implemented DELETE scenario for cases where user would want to store on SD card
 - better variable handling in a Config class (code simplification)
 
-To-Do (v0.3): 
+### To-Do (v0.3): 
 - logging (was lost in v0.2)
 - implement post-capture functionalities for a missed past partial capture on boot (there was a capture that was interrupted due to power loss and when power is restored, capture time is over, but some of the files still linger. Should implement a system to remember which capture was started but didn't finish to run it when idle)
 - upload to FTP or smth (tried to implement gDrive storage, but it requires personal identification [.json is not enough] so I skipped it for now)
